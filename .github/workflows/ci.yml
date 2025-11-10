@@ -26,7 +26,7 @@ jobs:
           cache: 'maven'
 
       - name: Get list of changed files
-        run: ./.github/changed_files.sh
+        run: bash ./.github/changed_files.sh
 
       - name: Maven test
         run: mvn test
