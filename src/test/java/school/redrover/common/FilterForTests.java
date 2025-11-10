@@ -29,9 +29,12 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            if (classMap.values().containsAll(fileSet)) {
-                return methods.stream().filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
-            }
+//            if (classMap.values().containsAll(fileSet)) {
+//                return methods.stream().filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
+//            }
+            return methods.stream()
+                    .filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
+                    .collect(Collectors.toList());
         }
 
         return methods;
