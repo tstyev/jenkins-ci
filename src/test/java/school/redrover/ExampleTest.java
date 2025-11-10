@@ -4,7 +4,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import school.redrover.common.BaseTest;
 
-public class Example extends BaseTest {
+public class ExampleTest extends BaseTest {
 
     @Test
     public void testExample1() {
