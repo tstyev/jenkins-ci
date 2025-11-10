@@ -5,16 +5,23 @@ set -e
 BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
 echo "Current branch: $BRANCH"
 
-# Находим общий предок ветки с main
-BASE=$(git merge-base origin/$BRANCH origin/main)
-echo "Common ancestor (BASE): $BASE"
+# Обновляем локальный origin/main, чтобы сравнивать
+git fetch origin main
+
+# Находим базовый коммит для сравнения
+if [ "$BRANCH" = "main" ]; then
+    BASE=$(git rev-parse HEAD^)
+else
+    BASE=$(git merge-base origin/$BRANCH origin/main)
+fi
+echo "Base commit for diff: $BASE"
 
 # Все добавленные, изменённые, переименованные и скопированные .java файлы
-CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only $BASE origin/$BRANCH | grep '\.java$' | tr '\n' ';')
+CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only $BASE HEAD | grep '\.java$' | tr '\n' ';')
 echo "Changed/added/renamed/copied .java files: $CHANGED_FILES"
 
 # Все удалённые .java файлы
-DELETED_FILES=$(git diff --diff-filter=D --name-only $BASE origin/$BRANCH | grep '\.java$' | tr '\n' ';')
+DELETED_FILES=$(git diff --diff-filter=D --name-only $BASE HEAD | grep '\.java$' | tr '\n' ';')
 echo "Deleted .java files: $DELETED_FILES"
 
 FULL_RUN=false
