@@ -10,4 +10,9 @@ public class My3Test extends BaseTest {
     public void test3() {
         Assert.assertTrue(true);
     }
+
+    @Test
+    public void test33() {
+        Assert.assertTrue(true);
+    }
 }
