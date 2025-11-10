@@ -1,14 +1,12 @@
 #!/bin/bash
-set -euo pipefail
 
-# Определяем текущую ветку
+set -e
+
 BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}}
 echo "Current branch: $BRANCH"
 
-# Обновляем origin/main для корректного diff
 git fetch origin main --quiet
 
-# Определяем базовый коммит
 if [ "$BRANCH" = "main" ]; then
     BASE=$(git rev-parse HEAD^)
 else
@@ -16,31 +14,26 @@ else
 fi
 echo "Base commit for diff: $BASE"
 
-# Изменённые, добавленные, переименованные и скопированные файлы
 ALL_CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only "$BASE" HEAD)
 echo "All changed/added/renamed/copied files:"
 echo "$ALL_CHANGED_FILES"
 
-# Удалённые файлы
 ALL_DELETED_FILES=$(git diff --diff-filter=D --name-only "$BASE" HEAD)
 echo "All deleted files:"
 echo "$ALL_DELETED_FILES"
 
 FULL_RUN=false
 
-# Проверяем удалённые файлы
 if [ -n "$ALL_DELETED_FILES" ] && echo "$ALL_DELETED_FILES" | grep -qv "Test\.java$"; then
   FULL_RUN=true
   echo "→ Non-test deleted file detected → FULL_RUN=true"
 fi
 
-# Проверяем изменённые/добавленные файлы
 if [ "$FULL_RUN" = false ] && [ -n "$ALL_CHANGED_FILES" ] && echo "$ALL_CHANGED_FILES" | grep -qv "Test\.java$"; then
   FULL_RUN=true
   echo "→ Non-test changed/added file detected → FULL_RUN=true"
 fi
 
-# Если не FULL_RUN — выбираем только тесты
 if [ "$FULL_RUN" = false ]; then
   CHANGED_TEST_FILES=$(echo "$ALL_CHANGED_FILES" | grep 'Test\.java$' || true)
   CHANGED_TEST_FILES=$(echo "$CHANGED_TEST_FILES" | tr '\n' ';')
@@ -49,7 +42,6 @@ else
   CHANGED_TEST_FILES=""
 fi
 
-# Устанавливаем переменную для GitHub Actions
 if [ "$FULL_RUN" = true ]; then
   echo "LIST_OF_CHANGED_FILES=FULL_RUN"
   echo "LIST_OF_CHANGED_FILES=FULL_RUN" >> "$GITHUB_ENV"
