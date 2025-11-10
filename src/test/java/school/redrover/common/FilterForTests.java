@@ -30,11 +30,10 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             if (classMap.values().containsAll(fileSet)) {
-                return methods.stream().filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
+                return methods.stream()
+                        .filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
+                        .collect(Collectors.toList());
             }
-//            return methods.stream()
-//                    .filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
-//                    .collect(Collectors.toList());
         }
 
         return methods;
