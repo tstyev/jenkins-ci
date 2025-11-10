@@ -18,7 +18,6 @@ public class FilterForTests implements IMethodInterceptor {
             }
 
             Set<String> fileSet = new HashSet<>(Arrays.asList(files.split(";")));
-
             Map<Class<?>, String> classMap = methods.stream()
                     .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
                     .collect(Collectors.toMap(
@@ -27,23 +26,9 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            // 1️⃣ фильтруем существующие методы по fileSet
-            List<IMethodInstance> filtered = methods.stream()
-                    .filter(method -> fileSet.contains(
-                            classMap.get(method.getMethod().getTestClass().getRealClass())))
-                    .collect(Collectors.toList());
-
-            // 2️⃣ если в fileSet есть тестовые файлы, которых нет в classMap → добавляем их
-            Set<String> existingClassPaths = new HashSet<>(classMap.values());
-            boolean hasNewTest = fileSet.stream()
-                    .anyMatch(f -> !existingClassPaths.contains(f) && f.endsWith("Test.java"));
-
-            if (hasNewTest) {
-                // просто возвращаем все методы, чтобы новые тесты точно запускались
-                return methods;
+            if (classMap.values().containsAll(fileSet)) {
+                return methods.stream().filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
             }
-
-            return filtered;
         }
 
         return methods;
