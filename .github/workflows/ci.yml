@@ -28,13 +28,9 @@ jobs:
       - name: Get list of changed files
         run: |
           bash ./.github/changed_files.sh
-          echo "LIST_OF_CHANGED_FILES=$LIST_OF_CHANGED_FILES"
-        env:
-          GITHUB_ENV: $GITHUB_ENV
 
       - name: Maven test
         run: mvn test
         env:
           BROWSER_OPTIONS_CHROME: --remote-allow-origins=*;--disable-gpu;--no-sandbox;--disable-dev-shm-usage;--headless=new;--window-size=1920,1080
           RUN_CI: true
-          LIST_OF_CHANGED_FILES: ${{ env.LIST_OF_CHANGED_FILES }}

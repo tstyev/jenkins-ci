@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-# Определяем текущую ветку (PR → GITHUB_HEAD_REF, обычный пуш → GITHUB_REF_NAME)
+# Определяем текущую ветку
 BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
 echo "Current branch: $BRANCH"
 
-# Обновляем локальный origin/main, чтобы сравнивать
+# Обновляем origin/main для корректного diff
 git fetch origin main
 
-# Находим базовый коммит для сравнения
+# Выбираем базовый коммит для diff
 if [ "$BRANCH" = "main" ]; then
     BASE=$(git rev-parse HEAD^)
 else
@@ -26,19 +26,19 @@ echo "Deleted .java files: $DELETED_FILES"
 
 FULL_RUN=false
 
-# Проверяем удалённые файлы на не тестовые
+# Если есть удалённые не тестовые → FULL_RUN
 if echo "$DELETED_FILES" | grep -q -v "Test\.java"; then
   FULL_RUN=true
   echo "Non-test deleted file detected → FULL_RUN"
 fi
 
-# Проверяем добавленные/изменённые/переименованные/скопированные файлы на не тестовые
+# Если есть изменённые/добавленные/переименованные не тестовые → FULL_RUN
 if echo "$CHANGED_FILES" | grep -q -v "Test\.java"; then
   FULL_RUN=true
   echo "Non-test changed/added/renamed/copied file detected → FULL_RUN"
 fi
 
-# Устанавливаем переменную для GitHub Actions
+# Записываем переменную для последующих шагов GitHub Actions
 if [ "$FULL_RUN" = true ]; then
   echo "LIST_OF_CHANGED_FILES=FULL_RUN"
   echo "LIST_OF_CHANGED_FILES=FULL_RUN" >> $GITHUB_ENV
