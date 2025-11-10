@@ -27,10 +27,20 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            return methods.stream()
-                    .filter(method -> fileSet.contains(
-                            classMap.get(method.getMethod().getTestClass().getRealClass())))
+            // Фильтруем существующие методы по fileSet
+            List<IMethodInstance> filtered = methods.stream()
+                    .filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
                     .collect(Collectors.toList());
+
+            // Проверяем, есть ли новые или переименованные тестовые классы
+            Set<String> existingClassPaths = new HashSet<>(classMap.values());
+            boolean hasNewOrRenamed = fileSet.stream().anyMatch(f -> !existingClassPaths.contains(f));
+
+            if (hasNewOrRenamed) {
+                return methods; // запускаем весь фреймворк, чтобы новые тесты точно выполнились
+            }
+
+            return filtered;
         }
 
         return methods;
