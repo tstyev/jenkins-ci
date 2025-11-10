@@ -18,8 +18,11 @@ public class FilterForTests implements IMethodInterceptor {
             }
 
             Set<String> fileSet = new HashSet<>(Arrays.asList(files.split(";")));
+
             Map<Class<?>, String> classMap = methods.stream()
-                    .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
+                    .map(IMethodInstance::getMethod)
+                    .map(ITestNGMethod::getTestClass)
+                    .map(IClass::getRealClass)
                     .collect(Collectors.toMap(
                             Function.identity(),
                             clazz -> String.format("src/test/java/%s.java", clazz.getName().replace('.', '/')),
