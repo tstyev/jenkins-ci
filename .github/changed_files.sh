@@ -18,11 +18,11 @@ echo "Base commit for diff: $BASE"
 
 # Изменённые, добавленные, переименованные и скопированные файлы
 ALL_CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only "$BASE" HEAD)
-# Удалённые файлы
-ALL_DELETED_FILES=$(git diff --diff-filter=D --name-only "$BASE" HEAD)
-
 echo "All changed/added/renamed/copied files:"
 echo "$ALL_CHANGED_FILES"
+
+# Удалённые файлы
+ALL_DELETED_FILES=$(git diff --diff-filter=D --name-only "$BASE" HEAD)
 echo "All deleted files:"
 echo "$ALL_DELETED_FILES"
 
