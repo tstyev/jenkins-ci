@@ -27,7 +27,7 @@ jobs:
 
       - name: Get list of changed files
         run: |
-          bash ./.github/changed_files.sh
+          bash .github/changed_files.sh
 
       - name: Maven test
         run: mvn test
