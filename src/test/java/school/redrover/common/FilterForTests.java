@@ -5,6 +5,7 @@ import org.testng.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FilterForTests implements IMethodInterceptor {
 
@@ -24,12 +25,11 @@ public class FilterForTests implements IMethodInterceptor {
                         String path = entry.substring(1).trim();
                         (status == 'D' ? deletedFiles : otherFiles).add(path);
                     });
-            System.out.println("Deleted files: " + deletedFiles);
-            System.out.println("Other files: " + otherFiles);
-            boolean hasDeletedNonTest = deletedFiles.stream()
+
+            boolean hasNonTest = Stream.concat(deletedFiles.stream(), otherFiles.stream())
                     .anyMatch(f -> !f.endsWith("Test.java"));
 
-            if (hasDeletedNonTest) {
+            if (hasNonTest) {
                 return methods;
             }
 
