@@ -27,7 +27,7 @@ public class FilterForTests implements IMethodInterceptor {
                     String[] parts = path.contains("\t")
                             ? path.substring(path.indexOf('\t') + 1).split("\\s+|\t")
                             : new String[]{path};
-                    otherFiles.add(parts[parts.length - 1].trim());
+                    otherFiles.add(parts[parts.length - 1].trim().replace("\r", ""));
                 } else {
                     otherFiles.add(path);
                 }
