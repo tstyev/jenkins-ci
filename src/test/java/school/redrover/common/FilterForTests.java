@@ -1,7 +1,6 @@
 package school.redrover.common;
 
 import org.testng.*;
-import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.function.Function;
@@ -14,19 +13,26 @@ public class FilterForTests implements IMethodInterceptor {
 
         String files = System.getenv("LIST_OF_CHANGED_FILES");
         if (files != null) {
-            Set<String> fileSet = new HashSet<>(Arrays.asList(files.split(";")));
+            List<String> fileList = Arrays.asList(files.split(";"));
 
-            boolean hasNonTest = fileSet.stream().anyMatch(className -> {
-                try {
-                    Class<?> clazz = Class.forName(className);
-                    return Arrays.stream(clazz.getDeclaredMethods())
-                            .noneMatch(m -> m.isAnnotationPresent(Test.class));
-                } catch (ClassNotFoundException e) {
-                    return true;
+            Set<String> deletedFiles = new HashSet<>();
+            Set<String> otherFiles = new HashSet<>();
+
+            for (String file : fileList) {
+                char status = file.charAt(0);
+                String path = file.substring(1).trim();
+
+                if (status == 'D') {
+                    deletedFiles.add(path);
+                } else {
+                    otherFiles.add(path);
                 }
-            });
+            }
 
-            if (hasNonTest) {
+            boolean hasDeletedNonTest = deletedFiles.stream()
+                    .anyMatch(f -> !f.endsWith("Test.java"));
+
+            if (hasDeletedNonTest) {
                 return methods;
             }
 
@@ -34,8 +40,6 @@ public class FilterForTests implements IMethodInterceptor {
                     .map(IMethodInstance::getMethod)
                     .map(ITestNGMethod::getTestClass)
                     .map(IClass::getRealClass)
-                    .filter(clazz -> Arrays.stream(clazz.getDeclaredMethods())
-                            .anyMatch(m -> m.isAnnotationPresent(Test.class)))
                     .collect(Collectors.toMap(
                             Function.identity(),
                             clazz -> String.format("src/test/java/%s.java", clazz.getName().replace('.', '/')),
@@ -43,7 +47,7 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             return methods.stream()
-                    .filter(method -> fileSet.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
+                    .filter(method -> otherFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
                     .collect(Collectors.toList());
         }
 
