@@ -26,7 +26,10 @@ jobs:
           cache: 'maven'
 
       - name: Get list of changed files
-        run: echo "LIST_OF_CHANGED_FILES=$(git diff --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')" >> $GITHUB_ENV
+        run: |
+          FILES=$(git diff --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
+          echo "LIST_OF_CHANGED_FILES=$FILES" >> $GITHUB_ENV
+          echo "Changed files: $FILES"
 
       - name: Maven test
         run: mvn test
