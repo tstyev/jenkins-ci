@@ -17,10 +17,7 @@ public class FilterForTests implements IMethodInterceptor {
             Set<String> deletedFiles = new HashSet<>();
             Set<String> otherFiles = new HashSet<>();
 
-            for (String s : files.split(";")) {
-                String entry = s.trim();
-                if (entry.isEmpty()) continue;
-
+            for (String entry : files.split(";")) {
                 char status = entry.charAt(0);
                 String path = entry.substring(1).trim();
 
