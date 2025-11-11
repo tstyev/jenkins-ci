@@ -24,10 +24,10 @@ public class FilterForTests implements IMethodInterceptor {
                 if (status == 'D') {
                     deletedFiles.add(path);
                 } else if (status == 'R') {
-                    String[] parts = path.contains("\t")
-                            ? path.substring(path.indexOf('\t') + 1).split("\\s+|\t")
-                            : new String[]{path};
-                    otherFiles.add(parts[parts.length - 1].trim().replace("\r", ""));
+                    String[] parts = path.split("\\s+|\t");
+                    for (String p : parts) {
+                        otherFiles.add(p.trim().replace("\r", ""));
+                    }
                 } else {
                     otherFiles.add(path);
                 }
