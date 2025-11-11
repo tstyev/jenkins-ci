@@ -21,12 +21,13 @@ public class FilterForTests implements IMethodInterceptor {
                 char status = entry.charAt(0);
                 String path = entry.substring(1).trim();
 
-                if (status == 'R') {
-                    String[] parts = path.split("\\s+");
-                    String newPath = parts[parts.length - 1];
-                    otherFiles.add(newPath);
-                } else if (status == 'D') {
+                if (status == 'D') {
                     deletedFiles.add(path);
+                } else if (status == 'R') {
+                    String[] parts = path.contains("\t")
+                            ? path.substring(path.indexOf('\t') + 1).split("\\s+|\t")
+                            : new String[]{path};
+                    otherFiles.add(parts[parts.length - 1]);
                 } else {
                     otherFiles.add(path);
                 }
