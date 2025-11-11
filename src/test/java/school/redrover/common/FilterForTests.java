@@ -23,7 +23,7 @@ public class FilterForTests implements IMethodInterceptor {
 
                 if (status == 'R') {
                     String[] parts = path.split("\\s+");
-                    String newPath = parts.length > 1 ? parts[1] : parts[0];
+                    String newPath = parts[parts.length - 1];
                     otherFiles.add(newPath);
                 } else if (status == 'D') {
                     deletedFiles.add(path);
