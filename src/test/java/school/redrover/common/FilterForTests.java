@@ -24,7 +24,8 @@ public class FilterForTests implements IMethodInterceptor {
                         String path = entry.substring(1).trim();
                         (status == 'D' ? deletedFiles : otherFiles).add(path);
                     });
-
+            System.out.println("Deleted files: " + deletedFiles);
+            System.out.println("Other files: " + otherFiles);
             boolean hasDeletedNonTest = deletedFiles.stream()
                     .anyMatch(f -> !f.endsWith("Test.java"));
 
