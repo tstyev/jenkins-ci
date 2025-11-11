@@ -27,11 +27,14 @@ public class FilterForTests implements IMethodInterceptor {
                     String[] parts = path.contains("\t")
                             ? path.substring(path.indexOf('\t') + 1).split("\\s+|\t")
                             : new String[]{path};
-                    otherFiles.add(parts[parts.length - 1]);
+                    otherFiles.add(parts[parts.length - 1].trim());
                 } else {
                     otherFiles.add(path);
                 }
             }
+
+            System.out.println("Deleted files: " + deletedFiles);
+            System.out.println("Other files: " + otherFiles);
 
             boolean hasNonTest = Stream.concat(deletedFiles.stream(), otherFiles.stream())
                     .anyMatch(f -> !f.endsWith("Test.java"));
