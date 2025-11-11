@@ -13,21 +13,17 @@ public class FilterForTests implements IMethodInterceptor {
 
         String files = System.getenv("LIST_OF_CHANGED_FILES");
         if (files != null) {
-            List<String> fileList = Arrays.asList(files.split(";"));
-
             Set<String> deletedFiles = new HashSet<>();
             Set<String> otherFiles = new HashSet<>();
 
-            for (String file : fileList) {
-                char status = file.charAt(0);
-                String path = file.substring(1).trim();
-
-                if (status == 'D') {
-                    deletedFiles.add(path);
-                } else {
-                    otherFiles.add(path);
-                }
-            }
+            Arrays.stream(files.split(";"))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .forEach(entry -> {
+                        char status = entry.charAt(0);
+                        String path = entry.substring(1).trim();
+                        (status == 'D' ? deletedFiles : otherFiles).add(path);
+                    });
 
             boolean hasDeletedNonTest = deletedFiles.stream()
                     .anyMatch(f -> !f.endsWith("Test.java"));
