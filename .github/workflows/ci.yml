@@ -27,7 +27,7 @@ jobs:
 
       - name: Get list of changed files
         run: |
-          FILES=$(git diff --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
+          FILES=$(git diff --name-status origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
           echo "LIST_OF_CHANGED_FILES=$FILES" >> $GITHUB_ENV
           echo "Changed files (without deleted): $FILES"
 
