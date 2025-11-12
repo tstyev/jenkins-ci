@@ -29,8 +29,8 @@ jobs:
         run: |
           git fetch --prune --unshallow || true
           git fetch origin main $GITHUB_HEAD_REF || true
-          CHANGED=$(git diff --diff-filter=ACMRT --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
-          DELETED=$(git diff --diff-filter=D --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
+          CHANGED=$(git diff --diff-filter=ACMRT --name-only --find-renames=100% $(git merge-base origin/main HEAD) HEAD | tr '\n' ';')
+          DELETED=$(git diff --diff-filter=D --name-only $(git merge-base origin/main HEAD) HEAD | tr '\n' ';')
           echo "CHANGED_TEST_FILES=$CHANGED" >> $GITHUB_ENV
           echo "DELETED_TEST_FILES=$DELETED" >> $GITHUB_ENV
           echo "Changed files: $CHANGED"
