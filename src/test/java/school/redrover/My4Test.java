@@ -2,13 +2,18 @@ package school.redrover;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
 import school.redrover.common.BaseTest;
 
-public class My11Test extends BaseTest {
+public class My4Test extends BaseTest {
 
     @Test
-    public void test1() {
+    public void test2() {
         Assert.assertTrue(true);
     }
+
+    @Test
+    public void test22() {
+        Assert.assertTrue(true);
+    }
+
 }
