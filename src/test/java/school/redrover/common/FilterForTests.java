@@ -12,31 +12,31 @@ public class FilterForTests implements IMethodInterceptor {
     @Override
     public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
 
-        String files = System.getenv("LIST_OF_CHANGED_FILES");
-        if (files != null) {
+        String changed = System.getenv("CHANGED_TEST_FILES");
+        String deleted = System.getenv("DELETED_TEST_FILES");
+
+        if (changed != null || deleted != null) {
+            Set<String> changedFiles = new HashSet<>();
             Set<String> deletedFiles = new HashSet<>();
-            Set<String> otherFiles = new HashSet<>();
 
-            for (String entry : files.split(";")) {
-                char status = entry.charAt(0);
-                String path = entry.substring(1).trim();
+            for (String f : changed.split(";")) {
+                String path = f.trim();
+                if (!path.isEmpty()) {
+                    changedFiles.add(path);
+                }
+            }
 
-                if (status == 'D') {
+            for (String f : deleted.split(";")) {
+                String path = f.trim();
+                if (!path.isEmpty()) {
                     deletedFiles.add(path);
-                } else if (status == 'R') {
-                    String[] parts = path.split("\\s+|\t");
-                    for (String p : parts) {
-                        otherFiles.add(p.trim().replace("\r", ""));
-                    }
-                } else {
-                    otherFiles.add(path);
                 }
             }
 
             System.out.println("Deleted files: " + deletedFiles);
-            System.out.println("Other files: " + otherFiles);
+            System.out.println("Other files: " + changedFiles);
 
-            boolean hasNonTest = Stream.concat(deletedFiles.stream(), otherFiles.stream())
+            boolean hasNonTest = Stream.concat(deletedFiles.stream(), changedFiles.stream())
                     .anyMatch(f -> !f.endsWith("Test.java"));
 
             if (hasNonTest) {
@@ -54,7 +54,7 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             return methods.stream()
-                    .filter(method -> otherFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
+                    .filter(method -> changedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass())))
                     .collect(Collectors.toList());
         }
 
