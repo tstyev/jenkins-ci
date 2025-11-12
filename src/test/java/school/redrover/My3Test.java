@@ -11,5 +11,4 @@ public class My3Test extends BaseTest {
         Assert.assertTrue(true);
     }
 
-
 }
