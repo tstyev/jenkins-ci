@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 import school.redrover.common.BaseTest;
 
-public class My1Test extends BaseTest {
+public class My11Test extends BaseTest {
 
     @Test
     public void test1() {
