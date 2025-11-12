@@ -27,6 +27,8 @@ jobs:
 
       - name: Get list of changed files
         run: |
+          git fetch --prune --unshallow || true
+          git fetch origin main $GITHUB_HEAD_REF || true
           CHANGED=$(git diff --diff-filter=ACMRT --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
           DELETED=$(git diff --diff-filter=D --name-only origin/$GITHUB_HEAD_REF $(git merge-base origin/$GITHUB_HEAD_REF origin/main) | tr '\n' ';')
           echo "CHANGED_TEST_FILES=$CHANGED" >> $GITHUB_ENV
