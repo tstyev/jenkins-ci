@@ -30,7 +30,7 @@ jobs:
           BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
 
           RESULT=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{
-            else if ($1 ~ /^R/) {
+            if ($1 ~ /^R/) {
               print "A="$3";"
             } else {
               print "A="$2";"
