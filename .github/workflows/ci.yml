@@ -30,16 +30,10 @@ jobs:
           BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
 
           RESULT=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{
-            if ($1 ~ /^R/) {
-              printf "R=%s;", $3
-            } else {
-              printf "%s=%s;", $1, $2
-            }
-          }' )
+            printf "{t = ($1 ~ /^R/); printf "%s=%s;", (t ? "R" : $1), (t ? $3 : $2)}' )
           echo "Changed files: $RESULT"
           echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
           
-
       - name: Maven test
         run: mvn test
         env:
