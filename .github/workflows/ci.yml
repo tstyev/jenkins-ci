@@ -29,7 +29,7 @@ jobs:
         run: |
           BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
 
-          RESULT=$(git diff --name-status --find-renames=100% origin/$GITHUB_HEAD_REF $BASE | awk '{
+          RESULT=$(git diff --name-status origin/$GITHUB_HEAD_REF $BASE | awk '{
             if ($1 == "D") {
               print "D="$2";"
             } else if ($1 ~ /^R/) {
