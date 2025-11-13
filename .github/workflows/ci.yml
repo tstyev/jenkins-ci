@@ -35,7 +35,7 @@ jobs:
             } else {
               printf "%s=%s;", $1, $2
             }
-          }' | tr -d '\n')
+          }' )
 
           echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
 
