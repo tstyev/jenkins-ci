@@ -29,7 +29,7 @@ jobs:
         run: |
           BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
 
-          echo "LIST_OF_CHANGED_FILES=$(git diff --name-status $BASE..origin/$GITHUB_HEAD_REF | awk '{if($1 ~ /^R/) print "R\t"$3; else print $1"\t"$2}' | tr '\n' ';' | tr '\t' '=')" >> $GITHUB_ENV
+          echo "LIST_OF_CHANGED_FILES=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{if($1 ~ /^R/) print "R\t"$3; else print $1"\t"$2}' | tr '\n' ';' | tr '\t' '=')" >> $GITHUB_ENV
       - name: Maven test
         run: mvn test
         env:
