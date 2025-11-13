@@ -33,7 +33,7 @@ jobs:
             if ($1 ~ /^R/) {
               print "R="$3";"
             } else {
-              print "A="$2";"
+              print $1=$2";"
             }
           }' | tr -d '\n')
 
