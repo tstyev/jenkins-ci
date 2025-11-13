@@ -7,7 +7,7 @@ import school.redrover.common.BaseTest;
 public class My3Test extends BaseTest {
 
     @Test
-    public void test3() {
+    public void test33() {
         Assert.assertTrue(true);
     }
 
