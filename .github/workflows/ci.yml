@@ -27,16 +27,16 @@ jobs:
 
       - name: Get list of changed files
         run: |
-          BASE=$(git merge-base origin/main HEAD)
-          
-          RESULT=$(git diff --name-status $BASE HEAD | awk '{
+          BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
+
+          RESULT=$(git diff --name-status origin/$GITHUB_HEAD_REF $BASE | awk '{
             if ($1 == "D") {
               print "D="$2";"
             } else {
               print "A="$2";"
             }
-          }' | tr '\n' ' ')
-          
+          }' | tr -d '\n')
+
           echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
           echo "Result: $RESULT"
 
