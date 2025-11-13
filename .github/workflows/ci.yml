@@ -31,7 +31,7 @@ jobs:
 
           RESULT=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{
             if ($1 ~ /^R/) {
-              print "A="$3";"
+              print "R="$3";"
             } else {
               print "A="$2";"
             }
