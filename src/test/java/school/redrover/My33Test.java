@@ -4,10 +4,10 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import school.redrover.common.BaseTest;
 
-public class My2Test extends BaseTest {
+public class My33Test extends BaseTest {
 
     @Test
-    public void test2() {
+    public void test3() {
         Assert.assertTrue(true);
     }
 
