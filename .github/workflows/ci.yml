@@ -27,12 +27,18 @@ jobs:
 
       - name: Get list of changed files
         run: |
-          CHANGED=$(git diff --diff-filter=ACMRT --name-only --find-renames=100% $(git merge-base origin/main HEAD) HEAD | tr '\n' ';')
-          DELETED=$(git diff --diff-filter=D --name-only $(git merge-base origin/main HEAD) HEAD | tr '\n' ';')
-          echo "CHANGED_TEST_FILES=$CHANGED" >> $GITHUB_ENV
-          echo "DELETED_TEST_FILES=$DELETED" >> $GITHUB_ENV
-          echo "Changed files: $CHANGED"
-          echo "Deleted files: $DELETED"
+          BASE=$(git merge-base origin/main HEAD)
+          
+          RESULT=$(git diff --name-status $BASE HEAD | awk '{
+            if ($1 == "D") {
+              print "D="$2";"
+            } else {
+              print "A="$2";"
+            }
+          }' | tr '\n' ' ')
+          
+          echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
+          echo "Result: $RESULT"
 
       - name: Maven test
         run: mvn test
