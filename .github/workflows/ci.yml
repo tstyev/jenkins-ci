@@ -31,11 +31,10 @@ jobs:
 
           RESULT=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{
             if ($1 ~ /^R/) {
-                print "R="$3";"
-              }
-              else {
-                print $1"="$2";"
-              }
+              print "R="$3";"
+            } else {
+              print $1"="$2";"
+            }
           }' | tr -d '\n')
 
           echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
