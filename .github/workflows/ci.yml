@@ -30,14 +30,7 @@ jobs:
           BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
 
           RESULT=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{
-            if ($1 == "D") {
-              print "D="$2";"
-            } else if ($1 ~ /^R/) {
-              print "A="$3";"
-            }else {
-              print "A="$2";"
-            }
-          }' | tr -d '\n')
+            if ($1 ~ /^R/) print "R="$3; else print $1"="$2";" }' | tr '\n' ';')
 
           echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
 
