@@ -36,8 +36,9 @@ jobs:
               printf "%s=%s;", $1, $2
             }
           }' )
-
+          echo "Changed files: $RESULT"
           echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
+          
 
       - name: Maven test
         run: mvn test
