@@ -1,4 +1,4 @@
 package school.redrover;
 
-public class Utils extends Add1{
+public class Utils {
 }
