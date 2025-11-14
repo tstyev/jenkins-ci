@@ -11,4 +11,9 @@ public class My1Test extends BaseTest {
         Assert.assertTrue(true);
     }
 
+    @Test
+    public void test22() {
+        Assert.assertTrue(true);
+    }
+
 }
