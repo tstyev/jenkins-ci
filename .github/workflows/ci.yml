@@ -27,18 +27,8 @@ jobs:
 
       - name: Get list of changed files
         run: |
-          BASE=$(git merge-base origin/$GITHUB_HEAD_REF origin/main)
-
-          RESULT=$(git diff --name-status $BASE origin/$GITHUB_HEAD_REF | awk '{
-            if ($1 ~ /^R/) {
-              print "R="$3";"
-            } else {
-              print $1"="$2";"
-            }
-          }' | tr -d '\n')
-
-          echo "LIST_OF_CHANGED_FILES=$RESULT" >> $GITHUB_ENV
-
+          echo "LIST_OF_CHANGED_FILES=$(git diff --name-status $(git merge-base origin/$GITHUB_HEAD_REF origin/main) origin/$GITHUB_HEAD_REF | tr '\n' ';' | tr '\t' '=')" >> $GITHUB_ENV
+          
       - name: Maven test
         run: mvn test
         env:
