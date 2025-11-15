@@ -4,6 +4,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
+import school.redrover.common.order.OrderForTests;
 import school.redrover.common.order.OrderUtils;
 
 import java.lang.reflect.Method;
@@ -11,7 +12,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-@Listeners(FilterForTests.class)
+@Listeners({FilterForTests.class, OrderForTests.class})
 public abstract class BaseTest {
 
     private WebDriver driver;
@@ -27,12 +28,23 @@ public abstract class BaseTest {
         driver = ProjectUtils.createDriver();
     }
 
+    private void clearData() {
+        ProjectUtils.log("Clear data");
+        JenkinsUtils.clearData();
+    }
+
+    private void loginWeb() {
+        ProjectUtils.log("Login");
+        JenkinsUtils.login(getDriver());
+    }
+
     private void getWeb() {
         ProjectUtils.log("Get web page");
         ProjectUtils.get(getDriver());
     }
 
     private void stopDriver() {
+        JenkinsUtils.logout(getDriver());
         closeDriver();
     }
 
@@ -64,8 +76,10 @@ public abstract class BaseTest {
         ProjectUtils.logf("Run %s.%s", this.getClass().getName(), method.getName());
         try {
             if (!methodsOrder.isGroupStarted(method) || methodsOrder.isGroupFinished(method)) {
+                clearData();
                 startDriver();
                 getWeb();
+                loginWeb();
             } else {
                 getWeb();
             }
