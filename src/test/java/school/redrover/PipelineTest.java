@@ -6,6 +6,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import school.redrover.common.BaseTest;
+import school.redrover.page.ExamplePage;
 import school.redrover.page.HomePage;
 
 import java.util.List;
@@ -36,6 +37,8 @@ public class PipelineTest extends BaseTest {
                 .selectPipelineAndSubmit()
                 .gotoHomePage()
                 .getProjectList();
+
+        ExamplePage.example();
 
         Assert.assertTrue(actualProjectList.contains(PIPELINE_NAME),
                 String.format("Pipeline with name '%s' was not created", PIPELINE_NAME));
