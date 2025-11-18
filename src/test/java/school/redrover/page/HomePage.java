@@ -24,7 +24,7 @@ public class HomePage extends BasePage {
 
     public NewItemPage clickNewItemOnLeftMenu() {
         getDriver().findElement(By.cssSelector("a[href='/view/all/newJob']")).click();
-
+        int a =1;
         return new NewItemPage(getDriver());
     }
 
