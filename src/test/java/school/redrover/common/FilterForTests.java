@@ -66,6 +66,7 @@ public class FilterForTests implements IMethodInterceptor {
                 return methods.stream().filter(method -> affectedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
             }
 
+
         }
 
         return methods;

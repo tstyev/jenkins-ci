@@ -15,6 +15,7 @@ public abstract class BasePage extends BaseModel {
     public HomePage gotoHomePage() {
         getWait5().until(ExpectedConditions.elementToBeClickable(By.className("app-jenkins-logo"))).click();
 
+
         return new HomePage(getDriver());
     }
 
