@@ -32,12 +32,12 @@ jobs:
 
       - name: Get collections of class dependencies
         run: |
-          echo "LIST_OF_DEPENDENCIES_FILES=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $3 "=" $1}' | tr '\n' ';')" >> $GITHUB_ENV
+          echo "LIST_OF_DEPENDENCIES_CLASSES=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $3 "=" $1}' | tr '\n' ';')" >> $GITHUB_ENV
           F2=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $3 "=" $1}' | tr '\n' ';')
           echo "f2:"+"$F2"
 
-      # tar -cvf jenkins_backup.tar ./jenkins_backup
-      # split -b 90m -d jenkins_backup.tar jenkins_backup
+# tar -cvf jenkins_backup.tar ./jenkins_backup
+# split -b 90m -d jenkins_backup.tar jenkins_backup
 
       - name: Prepare Jenkins data
         run: |
