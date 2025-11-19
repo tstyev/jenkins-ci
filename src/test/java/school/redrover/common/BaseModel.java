@@ -33,7 +33,6 @@ public abstract class BaseModel {
         if (wait5 == null) {
             wait5 = new WebDriverWait(getDriver(), Duration.ofSeconds(5));
         }
-
         return wait5;
     }
 
