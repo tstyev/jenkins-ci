@@ -36,17 +36,18 @@ public class FilterForTests implements IMethodInterceptor {
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            Set<String> touched = new HashSet<>(changedFiles);
             Queue<String> queue = new ArrayDeque<>(changedFiles);
             while (!queue.isEmpty()) {
                 String file = queue.poll();
                 dependants.getOrDefault(file, Set.of())
                         .forEach(dep -> {
-                            if (touched.add(dep)) queue.add(dep);
+                            if (changedFiles.add(dep)) {
+                                queue.add(dep);
+                            }
                         });
             }
 
-            Set<String> affectedFiles = touched.stream()
+            Set<String> affectedFiles = changedFiles.stream()
                     .filter(file ->
                             classMap.containsValue(file) ||                                   // это тест
                                     (changedFiles.contains(file) &&                                   // это изменённый файл
