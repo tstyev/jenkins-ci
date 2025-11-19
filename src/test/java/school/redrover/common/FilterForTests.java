@@ -34,7 +34,7 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Map<String, Set<String>> graph = Arrays.stream(dependenciesFiles.split(";"))
+            Map<String, Set<String>> dependencyGraph = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("="))
                     .collect(Collectors.groupingBy(
                             p -> String.format(pathTemplate, p[0].replace('.', '/')),
@@ -44,7 +44,12 @@ public class FilterForTests implements IMethodInterceptor {
                             )
                     ));
 
-            Set<String> affectedFiles = resolveRecursive(changedFiles, graph);
+            Set<String> affectedFiles = new HashSet<>();
+            Set<String> visitedFiles = new HashSet<>();
+
+            for (String file : changedFiles) {
+                collectLeaves(file, dependencyGraph, affectedFiles, visitedFiles);
+            }
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
@@ -56,28 +61,17 @@ public class FilterForTests implements IMethodInterceptor {
         return methods;
     }
 
-    private Set<String> resolveRecursive(Set<String> changedFiles, Map<String, Set<String>> graph) {
-        Set<String> result = new HashSet<>();
-        Set<String> visited = new HashSet<>();
+    private void collectLeaves(String currentFile, Map<String, Set<String>> dependencyGraph, Set<String> affectedFiles, Set<String> visitedFiles) {
+        if (!visitedFiles.add(currentFile)) return;
 
-        for (String file : changedFiles) {
-            collect(file, graph, result, visited);
-        }
-
-        return result;
-    }
-
-    private void collect(String current, Map<String, Set<String>> graph, Set<String> result, Set<String> visited) {
-        if (!visited.add(current)) return;
-
-        Set<String> children = graph.get(current);
+        Set<String> children = dependencyGraph.get(currentFile);
         if (children == null || children.isEmpty()) {
-            result.add(current);
+            affectedFiles.add(currentFile);
             return;
         }
 
         for (String child : children) {
-            collect(child, graph, result, visited);
+            collectLeaves(child, dependencyGraph, affectedFiles, visitedFiles);
         }
     }
 }
