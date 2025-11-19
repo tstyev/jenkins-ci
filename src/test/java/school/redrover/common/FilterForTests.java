@@ -52,8 +52,6 @@ public class FilterForTests implements IMethodInterceptor {
 
             affectedFiles.removeIf(file -> !dependants.getOrDefault(file, Set.of()).isEmpty());
 
-            System.out.println("Final affected files: " + affectedFiles);
-
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
                 return methods.stream().filter(method -> affectedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
