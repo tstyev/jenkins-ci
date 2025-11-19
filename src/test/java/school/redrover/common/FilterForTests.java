@@ -40,10 +40,10 @@ public class FilterForTests implements IMethodInterceptor {
                     .flatMap(changedFile -> {
                         Set<String> visited = new HashSet<>();
                         Set<String> result = new HashSet<>();
-                        Deque<String> toExplore = new ArrayDeque<>(List.of(changedFile));
+                        List<String> toExplore = new ArrayList<>(List.of(changedFile));
 
                         while (!toExplore.isEmpty()) {
-                            String currentFile = toExplore.pop();
+                            String currentFile = toExplore.remove(toExplore.size() - 1);
                             if (!visited.add(currentFile)) {
                                 continue;
                             }
