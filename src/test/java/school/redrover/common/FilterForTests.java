@@ -36,7 +36,7 @@ public class FilterForTests implements IMethodInterceptor {
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            Set<String> touched = new HashSet<>();
+            Set<String> touched = new HashSet<>(changedFiles);
             Queue<String> queue = new ArrayDeque<>(changedFiles);
             while (!queue.isEmpty()) {
                 String file = queue.poll();
