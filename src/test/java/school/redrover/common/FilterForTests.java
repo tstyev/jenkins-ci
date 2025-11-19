@@ -20,7 +20,9 @@ public class FilterForTests implements IMethodInterceptor {
                     .filter(e -> !e.startsWith("D="))
                     .map(e -> e.substring(e.lastIndexOf('=') + 1))
                     .collect(Collectors.toSet());
+
             System.out.println("Changed files" + changedFiles);
+
             Map<Class<?>, String> classMap = methods.stream()
                     .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
                     .collect(Collectors.toMap(
