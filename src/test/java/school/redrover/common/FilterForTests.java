@@ -50,7 +50,7 @@ public class FilterForTests implements IMethodInterceptor {
 
             Set<String> affectedFiles = touched.stream()
                     .filter(file ->
-//                            classMap.containsValue(file) ||                                   // это тест
+                            classMap.containsValue(file) ||                                   // это тест
                                     (changedFiles.contains(file) &&                                   // это изменённый файл
                                             dependants.getOrDefault(file, Set.of()).isEmpty())               // и от него никто не зависит
                     )
