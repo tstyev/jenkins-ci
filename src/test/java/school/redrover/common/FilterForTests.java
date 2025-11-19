@@ -29,9 +29,6 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Set<String> affectedFiles = new HashSet<>(changedFiles);
-            Set<String> visited = new HashSet<>(changedFiles);
-
             Map<String, Set<String>> dependants = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("<-"))
                     .collect(Collectors.groupingBy(
@@ -39,24 +36,23 @@ public class FilterForTests implements IMethodInterceptor {
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            while (true) {
-                List<String> toRemove = new ArrayList<>();
-                List<String> toAdd = new ArrayList<>();
+            Set<String> affectedFiles = new HashSet<>(changedFiles);
+            Queue<String> queue = new ArrayDeque<>(changedFiles);
 
-                for (String file : affectedFiles) {
-                    Set<String> dependantsOfFile = dependants.getOrDefault(file, Set.of());
-                    if (!dependantsOfFile.isEmpty()) {
-                        toRemove.add(file);
-                        dependantsOfFile.stream()
-                                .filter(visited::add)
-                                .forEach(toAdd::add);
+            while (!queue.isEmpty()) {
+                String file = queue.poll();
+
+                Set<String> deps = dependants.getOrDefault(file, Set.of());
+
+                for (String dep : deps) {
+                    if (affectedFiles.add(dep)) {
+                        queue.add(dep);
                     }
                 }
 
-                if (toRemove.isEmpty()) break;
-
-                affectedFiles.removeAll(toRemove);
-                affectedFiles.addAll(toAdd);
+                if (!deps.isEmpty()) {
+                    affectedFiles.remove(file);
+                }
             }
 
             System.out.println("Affected files" + affectedFiles);
