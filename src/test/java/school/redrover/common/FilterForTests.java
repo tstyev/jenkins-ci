@@ -29,7 +29,7 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Map<String, Set<String>> dependees = Arrays.stream(dependenciesFiles.split(";"))
+            Map<String, Set<String>> dependiesFiles = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("<-"))
                     .collect(Collectors.groupingBy(
                             parts -> String.format("src/test/java/%s.java", parts[0].replace('.', '/')),
@@ -37,33 +37,29 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             Set<String> affectedFiles = changedFiles.stream()
-                    .flatMap(changed -> {
-                        Set<String> seen = new HashSet<>();           // локальный visited на каждый changed файл
-                        Deque<String> stack = new ArrayDeque<>(List.of(changed));
+                    .flatMap(changedFile -> {
+                        Set<String> visited = new HashSet<>();
                         Set<String> result = new HashSet<>();
+                        Deque<String> toExplore = new ArrayDeque<>(List.of(changedFile));
 
-                        while (!stack.isEmpty()) {
-                            String current = stack.pop();
-                            if (!seen.add(current)) continue;
-
-                            if (classMap.containsValue(current)) {
-                                result.add(current);                  // тест — сразу в результат
+                        while (!toExplore.isEmpty()) {
+                            String currentFile = toExplore.pop();
+                            if (!visited.add(currentFile)) {
                                 continue;
                             }
-
-                            Set<String> parents = dependees.getOrDefault(current, Set.of());
-
-                            if (parents.isEmpty()) {
-                                result.add(current);                  // висячий non-test → в результат
+                            if (classMap.containsValue(currentFile)) {
+                                result.add(currentFile);
                             } else {
-                                stack.addAll(parents);                // идём вверх
-                                result.addAll(parents);               // родители — новые "висячие"
+                                Set<String> directDependencies = dependiesFiles.getOrDefault(currentFile, Set.of());
+                                Set<String> nextLevel = directDependencies.isEmpty() ? Set.of(currentFile) : directDependencies;
+
+                                result.addAll(nextLevel);
+                                toExplore.addAll(nextLevel);
                             }
                         }
 
                         return result.stream();
-                    })
-                    .collect(Collectors.toSet());
+                    }).collect(Collectors.toSet());
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
