@@ -64,10 +64,7 @@ public class FilterForTests implements IMethodInterceptor {
         return result;
     }
 
-    private void collect(String current,
-                         Map<String, Set<String>> graph,
-                         Set<String> result,
-                         Set<String> visited) {
+    private void collect(String current, Map<String, Set<String>> graph, Set<String> result, Set<String> visited) {
         if (!visited.add(current)) return;
 
         Set<String> children = graph.get(current);
