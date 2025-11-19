@@ -41,7 +41,7 @@ public class FilterForTests implements IMethodInterceptor {
                             )
                     ));
 
-            Set<String> affectedFiles = resolveIterative(changedFiles, graph);
+            Set<String> affectedFiles = resolveRecursive(changedFiles, graph);
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
@@ -53,25 +53,31 @@ public class FilterForTests implements IMethodInterceptor {
         return methods;
     }
 
-    private Set<String> resolveIterative(Set<String> changedFiles, Map<String, Set<String>> graph) {
+    private Set<String> resolveRecursive(Set<String> changedFiles, Map<String, Set<String>> graph) {
         Set<String> result = new HashSet<>();
-        Deque<String> stack = new ArrayDeque<>();
+        Set<String> visited = new HashSet<>();
 
-        for (String root : changedFiles) {
-            stack.push(root);
-
-            while (!stack.isEmpty()) {
-                String current = stack.pop();
-                Set<String> children = graph.get(current);
-
-                if (children == null || children.isEmpty()) {
-                    result.add(current);
-                } else {
-                    stack.addAll(children);
-                }
-            }
+        for (String file : changedFiles) {
+            collect(file, graph, result, visited);
         }
 
         return result;
+    }
+
+    private void collect(String current,
+                         Map<String, Set<String>> graph,
+                         Set<String> result,
+                         Set<String> visited) {
+        if (!visited.add(current)) return;
+
+        Set<String> children = graph.get(current);
+        if (children == null || children.isEmpty()) {
+            result.add(current);
+            return;
+        }
+
+        for (String child : children) {
+            collect(child, graph, result, visited);
+        }
     }
 }
