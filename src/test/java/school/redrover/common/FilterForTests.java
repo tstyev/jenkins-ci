@@ -47,7 +47,7 @@ public class FilterForTests implements IMethodInterceptor {
                             }
                         });
             }
-
+            System.out.println("Touched files" + touched);
             Set<String> affectedFiles = touched.stream()
                     .filter(file ->
                             classMap.containsValue(file) ||                                   // это тест
