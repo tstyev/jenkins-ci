@@ -8,8 +8,11 @@ import java.util.stream.Collectors;
 
 public class FilterForTests implements IMethodInterceptor {
 
+
     @Override
     public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
+        final String pathTemplate = "src/test/java/%s.java";
+
         String files = System.getenv("LIST_OF_CHANGED_FILES");
         String dependenciesFiles = System.getenv("LIST_OF_DEPENDENCIES_FILES");
 
@@ -20,55 +23,55 @@ public class FilterForTests implements IMethodInterceptor {
                     .filter(e -> !e.startsWith("D="))
                     .map(e -> e.substring(e.lastIndexOf('=') + 1))
                     .collect(Collectors.toSet());
+
             System.out.println("Changed files" + changedFiles);
+
             Map<Class<?>, String> classMap = methods.stream()
                     .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
                     .collect(Collectors.toMap(
                             Function.identity(),
-                            clazz -> String.format("src/test/java/%s.java", clazz.getName().replace('.', '/')),
+                            clazz -> String.format(pathTemplate, clazz.getName().replace('.', '/')),
                             (pathA, pathB) -> pathA
                     ));
 
-            Map<String, Set<String>> dependenciesFilesMap = Arrays.stream(dependenciesFiles.split(";"))
-                    .map(s -> s.split("<-"))
+            Map<String, Set<String>> dependencyGraph = Arrays.stream(dependenciesFiles.split(";"))
+                    .map(s -> s.split("="))
                     .collect(Collectors.groupingBy(
-                            parts -> String.format("src/test/java/%s.java", parts[0].replace('.', '/')),
-                            Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
+                            p -> String.format(pathTemplate, p[0].replace('.', '/')),
+                            Collectors.mapping(
+                                    p -> String.format(pathTemplate, p[1].replace('.', '/')),
+                                    Collectors.toSet()
+                            )
                     ));
 
-            Set<String> affectedFiles = changedFiles.stream()
-                    .flatMap(changedFile -> {
-                        Set<String> visited = new HashSet<>();
-                        Set<String> result = new HashSet<>();
-                        List<String> toExplore = new ArrayList<>(List.of(changedFile));
+            Set<String> affectedFiles = new HashSet<>();
+            Set<String> visitedFiles = new HashSet<>();
 
-                        while (!toExplore.isEmpty()) {
-                            String currentFile = toExplore.remove(toExplore.size() - 1);
-                            if (!visited.add(currentFile)) {
-                                continue;
-                            }
-                            if (classMap.containsValue(currentFile)) {
-                                result.add(currentFile);
-                            } else {
-                                Set<String> directDependencies = dependenciesFilesMap.getOrDefault(currentFile, Set.of());
-                                Set<String> nextLevel = directDependencies.isEmpty() ? Set.of(currentFile) : directDependencies;
-
-                                result.addAll(nextLevel);
-                                toExplore.addAll(nextLevel);
-                            }
-                        }
-
-                        return result.stream();
-                    }).collect(Collectors.toSet());
+            for (String file : changedFiles) {
+                collectLeaves(file, dependencyGraph, affectedFiles, visitedFiles);
+            }
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
                 return methods.stream().filter(method -> affectedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
             }
 
-
         }
 
         return methods;
+    }
+
+    private void collectLeaves(String currentFile, Map<String, Set<String>> dependencyGraph, Set<String> affectedFiles, Set<String> visitedFiles) {
+        if (!visitedFiles.add(currentFile)) return;
+
+        Set<String> children = dependencyGraph.get(currentFile);
+        if (children == null || children.isEmpty()) {
+            affectedFiles.add(currentFile);
+            return;
+        }
+
+        for (String child : children) {
+            collectLeaves(child, dependencyGraph, affectedFiles, visitedFiles);
+        }
     }
 }
