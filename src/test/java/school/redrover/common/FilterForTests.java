@@ -29,32 +29,42 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Map<String, Set<String>> dependants = Arrays.stream(dependenciesFiles.split(";"))
+            Map<String, Set<String>> dependees = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("<-"))
                     .collect(Collectors.groupingBy(
                             parts -> String.format("src/test/java/%s.java", parts[0].replace('.', '/')),
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            Set<String> touched = new HashSet<>(changedFiles);
-            Queue<String> queue = new ArrayDeque<>(changedFiles);
-            while (!queue.isEmpty()) {
-                String file = queue.poll();
-                dependants.getOrDefault(file, Set.of())
-                        .forEach(dep -> {
-                            if (touched.add(dep)) {
-                                queue.add(dep);
-                            }
-                        });
+            Set<String> affectedFiles = new HashSet<>();
+            Set<String> visited = new HashSet<>();
+
+            for (String changed : changedFiles) {
+                Deque<String> stack = new ArrayDeque<>();
+                stack.push(changed);
+
+                while (!stack.isEmpty()) {
+                    String current = stack.pop();
+                    if (!visited.add(current)) continue;
+
+                    if (classMap.containsValue(current)) {
+                        affectedFiles.add(current);
+                        continue;
+                    }
+
+                    // Ищем родителей (от кого зависит current)
+                    Set<String> parents = dependees.getOrDefault(current, Set.of());
+
+                    if (parents.isEmpty()) {
+                        // Нет родителей → это "висячий" изменённый non-test → триггерит полный запуск
+                        affectedFiles.add(current);
+                    } else {
+                        // Поднимаемся вверх — родители считаются "изменёнными"
+                        stack.addAll(parents);
+                        affectedFiles.addAll(parents);
+                    }
+                }
             }
-            System.out.println("Touched files" + touched);
-            Set<String> affectedFiles = touched.stream()
-                    .filter(file ->
-                            classMap.containsValue(file) ||                                   // это тест
-                                    (changedFiles.contains(file) &&                                   // это изменённый файл
-                                            dependants.getOrDefault(file, Set.of()).isEmpty())               // и от него никто не зависит
-                    )
-                    .collect(Collectors.toSet());
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
