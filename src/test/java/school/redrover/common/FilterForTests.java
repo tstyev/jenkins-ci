@@ -30,7 +30,7 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             Map<String, Set<String>> dependenciesFilesMap = Arrays.stream(dependenciesFiles.split(";"))
-                    .map(s -> s.split("<-"))
+                    .map(s -> s.split("="))
                     .collect(Collectors.groupingBy(
                             parts -> String.format("src/test/java/%s.java", parts[0].replace('.', '/')),
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
