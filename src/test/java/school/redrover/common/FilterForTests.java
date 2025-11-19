@@ -29,7 +29,7 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Map<String, Set<String>> dependiesFiles = Arrays.stream(dependenciesFiles.split(";"))
+            Map<String, Set<String>> dependenciesFilesMap = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("<-"))
                     .collect(Collectors.groupingBy(
                             parts -> String.format("src/test/java/%s.java", parts[0].replace('.', '/')),
@@ -50,7 +50,7 @@ public class FilterForTests implements IMethodInterceptor {
                             if (classMap.containsValue(currentFile)) {
                                 result.add(currentFile);
                             } else {
-                                Set<String> directDependencies = dependiesFiles.getOrDefault(currentFile, Set.of());
+                                Set<String> directDependencies = dependenciesFilesMap.getOrDefault(currentFile, Set.of());
                                 Set<String> nextLevel = directDependencies.isEmpty() ? Set.of(currentFile) : directDependencies;
 
                                 result.addAll(nextLevel);
