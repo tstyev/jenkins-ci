@@ -36,35 +36,34 @@ public class FilterForTests implements IMethodInterceptor {
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            Set<String> affectedFiles = new HashSet<>();
-            Set<String> visited = new HashSet<>();
+            Set<String> affectedFiles = changedFiles.stream()
+                    .flatMap(changed -> {
+                        Set<String> seen = new HashSet<>();           // локальный visited на каждый changed файл
+                        Deque<String> stack = new ArrayDeque<>(List.of(changed));
+                        Set<String> result = new HashSet<>();
 
-            for (String changed : changedFiles) {
-                Deque<String> stack = new ArrayDeque<>();
-                stack.push(changed);
+                        while (!stack.isEmpty()) {
+                            String current = stack.pop();
+                            if (!seen.add(current)) continue;
 
-                while (!stack.isEmpty()) {
-                    String current = stack.pop();
-                    if (!visited.add(current)) continue;
+                            if (classMap.containsValue(current)) {
+                                result.add(current);                  // тест — сразу в результат
+                                continue;
+                            }
 
-                    if (classMap.containsValue(current)) {
-                        affectedFiles.add(current);
-                        continue;
-                    }
+                            Set<String> parents = dependees.getOrDefault(current, Set.of());
 
-                    // Ищем родителей (от кого зависит current)
-                    Set<String> parents = dependees.getOrDefault(current, Set.of());
+                            if (parents.isEmpty()) {
+                                result.add(current);                  // висячий non-test → в результат
+                            } else {
+                                stack.addAll(parents);                // идём вверх
+                                result.addAll(parents);               // родители — новые "висячие"
+                            }
+                        }
 
-                    if (parents.isEmpty()) {
-                        // Нет родителей → это "висячий" изменённый non-test → триггерит полный запуск
-                        affectedFiles.add(current);
-                    } else {
-                        // Поднимаемся вверх — родители считаются "изменёнными"
-                        stack.addAll(parents);
-                        affectedFiles.addAll(parents);
-                    }
-                }
-            }
+                        return result.stream();
+                    })
+                    .collect(Collectors.toSet());
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
