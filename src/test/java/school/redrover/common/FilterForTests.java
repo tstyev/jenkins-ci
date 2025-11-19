@@ -37,24 +37,22 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             Set<String> affectedFiles = new HashSet<>(changedFiles);
-            Set<String> visited = new HashSet<>(changedFiles);
             Queue<String> queue = new ArrayDeque<>(changedFiles);
 
             while (!queue.isEmpty()) {
                 String file = queue.poll();
-                Set<String> deps = dependants.getOrDefault(file, Set.of());
 
-                deps.forEach(dep -> {
-                    if (visited.add(dep)) {
-                        queue.add(dep);
-                        affectedFiles.add(dep);
-                    }
-                });
-
-                if (!deps.isEmpty()) {
-                    affectedFiles.remove(file);
-                }
+                dependants.getOrDefault(file, Set.of())
+                        .forEach(dep -> {
+                            if (affectedFiles.add(dep)) {
+                                queue.add(dep);
+                            }
+                        });
             }
+
+            affectedFiles.removeIf(file -> !dependants.getOrDefault(file, Set.of()).isEmpty());
+
+            System.out.println("Final affected files: " + affectedFiles);
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
