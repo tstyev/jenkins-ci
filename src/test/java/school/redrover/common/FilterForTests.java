@@ -30,6 +30,7 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             Set<String> affectedFiles = new HashSet<>(changedFiles);
+            Set<String> visited = new HashSet<>(changedFiles);
 
             Map<String, Set<String>> dependants = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("<-"))
@@ -41,13 +42,15 @@ public class FilterForTests implements IMethodInterceptor {
             while (true) {
                 Set<String> next = affectedFiles.stream()
                         .flatMap(f -> dependants.getOrDefault(f, Set.of()).stream())
+                        .filter(visited::add)           // ← главное: только новые!
                         .collect(Collectors.toSet());
 
                 if (next.isEmpty()) break;
 
-                affectedFiles.removeIf(f -> dependants.containsKey(f));
+                affectedFiles.removeIf(f -> dependants.containsKey(f) && !dependants.get(f).isEmpty());
                 affectedFiles.addAll(next);
             }
+
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
                 return methods.stream().filter(method -> affectedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
