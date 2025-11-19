@@ -25,15 +25,15 @@ jobs:
       - name: Get list of changed files
         run: |
           echo "LIST_OF_CHANGED_FILES=$(git diff --name-status $(git merge-base origin/$GITHUB_HEAD_REF origin/main) origin/$GITHUB_HEAD_REF | tr '\n' ';' | tr '\t' '=')" >> $GITHUB_ENV
-          F1=$(git diff --name-status $(git merge-base origin/$GITHUB_HEAD_REF origin/main) HEAD | tr '\n' ';' | tr '\t' '=')
+          F1:$(git diff --name-status $(git merge-base origin/$GITHUB_HEAD_REF origin/main) HEAD | tr '\n' ';' | tr '\t' '=')
           echo "f1"+"$F1"
       - name: Compile tests
         run: mvn test-compile
 
       - name: Get collections of class dependencies
         run: |
-          echo "LIST_OF_DEPENDENCIES_FILES=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $3 "<-" $1}' | tr '\n' ';')" >> $GITHUB_ENV
-          F2=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $3 "<-" $1}' | tr '\n' ';')
+          echo "LIST_OF_DEPENDENCIES_FILES=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $1 "=" $3}' | tr '\n' ';')" >> $GITHUB_ENV
+          F2:$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $3 "<-" $1}' | tr '\n' ';')
           echo "f2"+"$F2"
 
       # tar -cvf jenkins_backup.tar ./jenkins_backup
