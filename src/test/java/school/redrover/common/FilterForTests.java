@@ -11,7 +11,7 @@ public class FilterForTests implements IMethodInterceptor {
     @Override
     public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
         String files = System.getenv("LIST_OF_CHANGED_FILES");
-        String jdeps = System.getenv("JDEPS");
+        String jdeps = System.getenv("LIST_OF_DEPENDENCIES_FILES");
         final String srcTestJava = "src/test/java/%s.java";
 
         if (files != null && jdeps != null) {

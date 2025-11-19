@@ -25,14 +25,14 @@ jobs:
       - name: Get list of changed files
         run: |
           echo "LIST_OF_CHANGED_FILES=$(git diff --name-status $(git merge-base origin/$GITHUB_HEAD_REF origin/main) origin/$GITHUB_HEAD_REF | tr '\n' ';' | tr '\t' '=')" >> $GITHUB_ENV
-
+          echo "LIST_OF_CHANGED_FILES=${{ env.LIST_OF_CHANGED_FILES }}"
       - name: Compile tests
         run: mvn test-compile
 
       - name: Get collections of class dependencies
         run: |
-          echo "JDEPS=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $1 "->" $3}' | tr '\n' ';')" >> $GITHUB_ENV
-
+          echo "LIST_OF_DEPENDENCIES_FILES=$(jdeps -verbose:class -filter:none -recursive ./target/test-classes | grep "school.redrover.*-> school.redrover" | awk '{print $1 "->" $3}' | tr '\n' ';')" >> $GITHUB_ENV
+          echo "LIST_OF_DEPENDENCIES_FILES=${{ env.LIST_OF_DEPENDENCIES_FILES }}"
       # tar -cvf jenkins_backup.tar ./jenkins_backup
       # split -b 90m -d jenkins_backup.tar jenkins_backup
 
