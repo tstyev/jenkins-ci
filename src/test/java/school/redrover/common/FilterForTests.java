@@ -47,7 +47,7 @@ public class FilterForTests implements IMethodInterceptor {
 
                 if (next.isEmpty()) break;
 
-                affectedFiles.removeIf(f -> !changedFiles.contains(f) && !dependants.getOrDefault(f, Set.of()).isEmpty());
+                affectedFiles.removeIf(f -> !dependants.getOrDefault(f, Set.of()).isEmpty());
 
                 affectedFiles.addAll(next);
             }
