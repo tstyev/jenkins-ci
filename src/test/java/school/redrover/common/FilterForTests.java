@@ -38,11 +38,15 @@ public class FilterForTests implements IMethodInterceptor {
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            while (affectedFiles.addAll(
-                    affectedFiles.stream()
-                            .flatMap(f -> dependants.getOrDefault(f, Set.of()).stream())
-                            .toList()
-            )) {
+            while (true) {
+                Set<String> next = affectedFiles.stream()
+                        .flatMap(f -> dependants.getOrDefault(f, Set.of()).stream())
+                        .collect(Collectors.toSet());
+
+                if (next.isEmpty()) break;
+
+                affectedFiles.removeIf(f -> dependants.containsKey(f));
+                affectedFiles.addAll(next);
             }
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {

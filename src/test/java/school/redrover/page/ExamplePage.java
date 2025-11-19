@@ -4,5 +4,6 @@ public class ExamplePage {
 
     public static void example() {
 
+
     }
 }
