@@ -42,6 +42,7 @@ public abstract class BaseModel {
             wait10 = new WebDriverWait(getDriver(), Duration.ofSeconds(10));
         }
 
+
         return wait10;
     }
 
