@@ -42,12 +42,13 @@ public class FilterForTests implements IMethodInterceptor {
             while (true) {
                 Set<String> next = affectedFiles.stream()
                         .flatMap(f -> dependants.getOrDefault(f, Set.of()).stream())
-                        .filter(visited::add)           // ← главное: только новые!
+                        .filter(visited::add)
                         .collect(Collectors.toSet());
 
                 if (next.isEmpty()) break;
 
-                affectedFiles.removeIf(f -> dependants.containsKey(f) && !dependants.get(f).isEmpty());
+                affectedFiles.removeIf(f -> !changedFiles.contains(f) && !dependants.getOrDefault(f, Set.of()).isEmpty());
+
                 affectedFiles.addAll(next);
             }
 
