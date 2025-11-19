@@ -23,7 +23,6 @@ public class FilterForTests implements IMethodInterceptor {
 
             System.out.println("Changed files" + changedFiles);
 
-
             Map<Class<?>, String> classMap = methods.stream()
                     .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
                     .collect(Collectors.toMap(
@@ -55,9 +54,7 @@ public class FilterForTests implements IMethodInterceptor {
     }
 
     private Set<String> resolve(Set<String> changedFiles, Map<String, Set<String>> graph) {
-
         Set<String> result = new HashSet<>();
-
         for (String current : changedFiles) {
             resolveRecursive(current, graph, result);
         }
@@ -66,14 +63,11 @@ public class FilterForTests implements IMethodInterceptor {
     }
 
     private void resolveRecursive(String current, Map<String, Set<String>> graph, Set<String> result) {
-
         Set<String> children = graph.get(current);
-
         if (children == null || children.isEmpty()) {
             result.add(current);
             return;
         }
-
         for (String child : children) {
             resolveRecursive(child, graph, result);
         }
