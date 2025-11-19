@@ -12,5 +12,6 @@ public class ExamplePage extends BasePage {
     public static void example() {
 
 
+
     }
 }
