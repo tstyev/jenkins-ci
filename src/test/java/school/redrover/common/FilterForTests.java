@@ -14,6 +14,7 @@ public class FilterForTests implements IMethodInterceptor {
         String jdeps = System.getenv("LIST_OF_DEPENDENCIES_FILES");
         final String srcTestJava = "src/test/java/%s.java";
 
+
         if (files != null && jdeps != null) {
             List<String> entryList = Arrays.stream(files.split(";")).toList();
 
