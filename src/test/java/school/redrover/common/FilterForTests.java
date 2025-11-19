@@ -41,7 +41,7 @@ public class FilterForTests implements IMethodInterceptor {
                             )
                     ));
 
-            Set<String> affectedFiles = resolve(changedFiles, graph);
+            Set<String> affectedFiles = resolveIterative(changedFiles, graph);
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
@@ -53,23 +53,25 @@ public class FilterForTests implements IMethodInterceptor {
         return methods;
     }
 
-    private Set<String> resolve(Set<String> changedFiles, Map<String, Set<String>> graph) {
+    private Set<String> resolveIterative(Set<String> changedFiles, Map<String, Set<String>> graph) {
         Set<String> result = new HashSet<>();
-        for (String current : changedFiles) {
-            resolveRecursive(current, graph, result);
+        Deque<String> stack = new ArrayDeque<>();
+
+        for (String root : changedFiles) {
+            stack.push(root);
+
+            while (!stack.isEmpty()) {
+                String current = stack.pop();
+                Set<String> children = graph.get(current);
+
+                if (children == null || children.isEmpty()) {
+                    result.add(current);
+                } else {
+                    stack.addAll(children);
+                }
+            }
         }
 
         return result;
-    }
-
-    private void resolveRecursive(String current, Map<String, Set<String>> graph, Set<String> result) {
-        Set<String> children = graph.get(current);
-        if (children == null || children.isEmpty()) {
-            result.add(current);
-            return;
-        }
-        for (String child : children) {
-            resolveRecursive(child, graph, result);
-        }
     }
 }
