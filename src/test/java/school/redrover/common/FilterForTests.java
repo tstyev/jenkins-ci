@@ -29,9 +29,6 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Set<String> affectedFiles = new HashSet<>(changedFiles);
-            Set<String> visited = new HashSet<>(changedFiles);
-
             Map<String, Set<String>> dependants = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("<-"))
                     .collect(Collectors.groupingBy(
@@ -39,18 +36,21 @@ public class FilterForTests implements IMethodInterceptor {
                             Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
                     ));
 
-            while (true) {
-                Set<String> next = affectedFiles.stream()
-                        .flatMap(f -> dependants.getOrDefault(f, Set.of()).stream())
-                        .filter(visited::add)
-                        .collect(Collectors.toSet());
-
-                if (next.isEmpty()) break;
-
-                affectedFiles.removeIf(f -> !dependants.getOrDefault(f, Set.of()).isEmpty());
-
-                affectedFiles.addAll(next);
+            Set<String> touchedTests = new HashSet<>();
+            Queue<String> queue = new ArrayDeque<>(changedFiles);
+            while (!queue.isEmpty()) {
+                String file = queue.poll();
+                dependants.getOrDefault(file, Set.of())
+                        .forEach(dep -> {
+                            if (touchedTests.add(dep)) queue.add(dep);
+                        });
             }
+
+            Set<String> affectedFiles = new HashSet<>(touchedTests);
+            affectedFiles.removeIf(f -> !classMap.containsValue(f));
+            affectedFiles.addAll(changedFiles.stream()
+                    .filter(f -> !classMap.containsValue(f))
+                    .collect(Collectors.toSet()));
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
