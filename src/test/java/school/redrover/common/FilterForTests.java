@@ -40,16 +40,23 @@ public class FilterForTests implements IMethodInterceptor {
                     ));
 
             while (true) {
-                Set<String> next = affectedFiles.stream()
-                        .flatMap(f -> dependants.getOrDefault(f, Set.of()).stream())
-                        .filter(visited::add)
-                        .collect(Collectors.toSet());
+                List<String> toRemove = new ArrayList<>();
+                List<String> toAdd = new ArrayList<>();
 
-                if (next.isEmpty()) break;
+                for (String file : affectedFiles) {
+                    Set<String> dependantsOfFile = dependants.getOrDefault(file, Set.of());
+                    if (!dependantsOfFile.isEmpty()) {
+                        toRemove.add(file);
+                        dependantsOfFile.stream()
+                                .filter(visited::add)
+                                .forEach(toAdd::add);
+                    }
+                }
 
-                affectedFiles.removeIf(f -> !dependants.getOrDefault(f, Set.of()).isEmpty());
+                if (toRemove.isEmpty()) break;
 
-                affectedFiles.addAll(next);
+                affectedFiles.removeAll(toRemove);
+                affectedFiles.addAll(toAdd);
             }
 
             System.out.println("Affected files" + affectedFiles);
