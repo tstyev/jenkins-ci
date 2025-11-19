@@ -41,7 +41,6 @@ public class FilterForTests implements IMethodInterceptor {
 
             while (!queue.isEmpty()) {
                 String file = queue.poll();
-
                 dependants.getOrDefault(file, Set.of())
                         .forEach(dep -> {
                             if (affectedFiles.add(dep)) {
@@ -50,7 +49,11 @@ public class FilterForTests implements IMethodInterceptor {
                         });
             }
 
-            affectedFiles.removeIf(file -> !dependants.getOrDefault(file, Set.of()).isEmpty());
+            affectedFiles.removeIf(file ->
+                    !changedFiles.contains(file) &&
+                            !classMap.containsValue(file) &&
+                            !dependants.getOrDefault(file, Set.of()).isEmpty()
+            );
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
