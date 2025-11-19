@@ -8,8 +8,11 @@ import java.util.stream.Collectors;
 
 public class FilterForTests implements IMethodInterceptor {
 
+
     @Override
     public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
+        final String pathTemplate = "src/test/java/%s.java";
+
         String files = System.getenv("LIST_OF_CHANGED_FILES");
         String dependenciesFiles = System.getenv("LIST_OF_DEPENDENCIES_FILES");
 
@@ -27,16 +30,16 @@ public class FilterForTests implements IMethodInterceptor {
                     .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
                     .collect(Collectors.toMap(
                             Function.identity(),
-                            clazz -> String.format("src/test/java/%s.java", clazz.getName().replace('.', '/')),
+                            clazz -> String.format(pathTemplate, clazz.getName().replace('.', '/')),
                             (pathA, pathB) -> pathA
                     ));
 
             Map<String, Set<String>> graph = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("="))
                     .collect(Collectors.groupingBy(
-                            p -> String.format("src/test/java/%s.java", p[0].replace('.', '/')),
+                            p -> String.format(pathTemplate, p[0].replace('.', '/')),
                             Collectors.mapping(
-                                    p -> String.format("src/test/java/%s.java", p[1].replace('.', '/')),
+                                    p -> String.format(pathTemplate, p[1].replace('.', '/')),
                                     Collectors.toSet()
                             )
                     ));
