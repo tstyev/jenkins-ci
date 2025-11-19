@@ -20,7 +20,10 @@ public class FilterForTests implements IMethodInterceptor {
                     .filter(e -> !e.startsWith("D="))
                     .map(e -> e.substring(e.lastIndexOf('=') + 1))
                     .collect(Collectors.toSet());
+
             System.out.println("Changed files" + changedFiles);
+
+
             Map<Class<?>, String> classMap = methods.stream()
                     .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
                     .collect(Collectors.toMap(
@@ -29,46 +32,50 @@ public class FilterForTests implements IMethodInterceptor {
                             (pathA, pathB) -> pathA
                     ));
 
-            Map<String, Set<String>> dependenciesFilesMap = Arrays.stream(dependenciesFiles.split(";"))
+            Map<String, Set<String>> graph = Arrays.stream(dependenciesFiles.split(";"))
                     .map(s -> s.split("="))
                     .collect(Collectors.groupingBy(
-                            parts -> String.format("src/test/java/%s.java", parts[0].replace('.', '/')),
-                            Collectors.mapping(parts -> String.format("src/test/java/%s.java", parts[1].replace('.', '/')), Collectors.toSet())
+                            p -> String.format("src/test/java/%s.java", p[0].replace('.', '/')),
+                            Collectors.mapping(
+                                    p -> String.format("src/test/java/%s.java", p[1].replace('.', '/')),
+                                    Collectors.toSet()
+                            )
                     ));
 
-            Set<String> affectedFiles = changedFiles.stream()
-                    .flatMap(changedFile -> {
-                        Set<String> visited = new HashSet<>();
-                        Set<String> result = new HashSet<>();
-                        List<String> toExplore = new ArrayList<>(List.of(changedFile));
-
-                        while (!toExplore.isEmpty()) {
-                            String currentFile = toExplore.remove(toExplore.size() - 1);
-                            if (!visited.add(currentFile)) {
-                                continue;
-                            }
-                            if (classMap.containsValue(currentFile)) {
-                                result.add(currentFile);
-                            } else {
-                                Set<String> directDependencies = dependenciesFilesMap.getOrDefault(currentFile, Set.of());
-                                Set<String> nextLevel = directDependencies.isEmpty() ? Set.of(currentFile) : directDependencies;
-
-                                result.addAll(nextLevel);
-                                toExplore.addAll(nextLevel);
-                            }
-                        }
-
-                        return result.stream();
-                    }).collect(Collectors.toSet());
+            Set<String> affectedFiles = resolve(changedFiles, graph);
 
             System.out.println("Affected files" + affectedFiles);
             if (classMap.values().containsAll(affectedFiles)) {
                 return methods.stream().filter(method -> affectedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
             }
 
-
         }
 
         return methods;
+    }
+
+    private Set<String> resolve(Set<String> changedFiles, Map<String, Set<String>> graph) {
+
+        Set<String> result = new HashSet<>();
+
+        for (String current : changedFiles) {
+            resolveRecursive(current, graph, result);
+        }
+
+        return result;
+    }
+
+    private void resolveRecursive(String current, Map<String, Set<String>> graph, Set<String> result) {
+
+        Set<String> children = graph.get(current);
+
+        if (children == null || children.isEmpty()) {
+            result.add(current);
+            return;
+        }
+
+        for (String child : children) {
+            resolveRecursive(child, graph, result);
+        }
     }
 }
