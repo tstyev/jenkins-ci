@@ -62,7 +62,7 @@ public class FilterForTests implements IMethodInterceptor {
         return methods;
     }
 
-    private void collectLeaves(String currentFile, Map<String, Set<String>> dependencyGraph, Set<String> affectedFiles, Set<String> visitedFiles) {
+    private static void collectLeaves(String currentFile, Map<String, Set<String>> dependencyGraph, Set<String> affectedFiles, Set<String> visitedFiles) {
         if (!visitedFiles.add(currentFile)) return;
 
         Set<String> children = dependencyGraph.get(currentFile);
