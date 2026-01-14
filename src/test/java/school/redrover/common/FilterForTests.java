@@ -32,6 +32,7 @@ public class FilterForTests implements IMethodInterceptor {
                             clazz -> String.format(pathTemplate, clazz.getName().replace('.', '/')),
                             (pathA, pathB) -> pathA
                     ));
+            System.out.println("Class map" + classMap);
 
             Map<String, Set<String>> dependencyGraph = Arrays.stream(dependenciesClasses.split(";"))
                     .map(s -> s.split("="))
@@ -42,6 +43,7 @@ public class FilterForTests implements IMethodInterceptor {
                                     Collectors.toSet()
                             )
                     ));
+            System.out.println("Dependency graph" + dependencyGraph);
 
             Set<String> affectedFiles = new HashSet<>();
             Set<String> visitedFiles = new HashSet<>();
