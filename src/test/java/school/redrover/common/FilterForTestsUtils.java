@@ -28,6 +28,7 @@ public class FilterForTestsUtils {
         System.out.println("Class map" + classMap);
 
         Map<String, Set<String>> dependencyGraph = Arrays.stream(dependenciesClasses.split(";"))
+                .filter(s -> s.contains("="))
                 .map(s -> s.split("="))
                 .collect(Collectors.groupingBy(
                         p -> String.format(pathTemplate, p[0].replace('.', '/')),
