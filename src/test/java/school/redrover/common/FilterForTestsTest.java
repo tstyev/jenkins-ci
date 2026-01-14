@@ -52,6 +52,7 @@ public class FilterForTestsTest {
         );
         Set<String> affectedFiles = collect(changedFiles, graph);
 
+
         Assert.assertEquals(affectedFiles, Set.of(TEST_A));
     }
 
