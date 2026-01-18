@@ -13,6 +13,7 @@ public class OrderForTestsTest {
         public String name;
         public String[] dependencies;
 
+
         public Item(String name, String... dependencies) {
             this.name = name;
             this.dependencies = dependencies;
