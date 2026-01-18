@@ -1,88 +1,133 @@
 package school.redrover.common.filter;
 
-import org.testng.Assert;
+import org.testng.*;
 import org.testng.annotations.Test;
 
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 
 public class FilterForTestsTest {
 
-    private static final String TEST_A = "src/test/java/ExampleATest.java";
-    private static final String TEST_B = "src/test/java/ExampleBTest.java";
+    private static class ExampleTest {    }
 
-    private static final String BASE_PAGE = "src/test/java/BasePage.java";
-    private static final String PAGE_A = "src/test/java/ExampleAPage.java";
-    private static final String PAGE_B = "src/test/java/ExampleBPage.java";
+    private static class LoginTest {    }
 
-    private static final String DATA_FILE = "src/test/resources/data.json";
+    private static class DashboardTest {    }
 
-    private final FilterForTests filter = new FilterForTests();
+    @Test
+    public void testDeletedClass() {
+        List<String> fileList = List.of("D=src/test/java/FileTest.java");
+        String dependenciesClasses = "";
+        List<IMethodInstance> methodList = List.of(new FilterMock.MethodInstanceImpl(FilterForTestsTest.class));
 
-    private Set<String> collect(Set<String> changedFiles, Map<String, Set<String>> graph) {
-        Set<String> affectedFiles = new HashSet<>();
-        Set<String> visitedFiles = new HashSet<>();
+        List<IMethodInstance> resultList = FilterForTestsUtils.filter(fileList, dependenciesClasses, methodList);
 
-        try {
-            Method collectLeavesMethod = FilterForTests.class.getDeclaredMethod(
-                    "collectLeaves", String.class, Map.class, Set.class, Set.class
-            );
-            collectLeavesMethod.setAccessible(true);
-
-            for (String file : changedFiles) {
-                collectLeavesMethod.invoke(filter, file, graph, affectedFiles, visitedFiles);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        return affectedFiles;
+        Assert.assertEquals(resultList.size(), 0);
     }
 
     @Test
-    public void testChainOfMultiplePages() {
-        Set<String> changedFiles = Set.of(BASE_PAGE);
-        Map<String, Set<String>> graph = Map.of(
-                BASE_PAGE, Set.of(PAGE_A),
-                PAGE_A, Set.of(PAGE_B),
-                PAGE_B, Set.of(TEST_A)
+    public void testNoChangesClass() {
+        List<String> fileList = List.of();
+        String dependencies = "";
+        List<IMethodInstance> methodList = List.of(new FilterMock.MethodInstanceImpl(FilterForTestsTest.class));
+
+        List<IMethodInstance> resultList = FilterForTestsUtils.filter(fileList, dependencies, methodList);
+
+        Assert.assertEquals(resultList.size(), 0);
+    }
+
+    @Test
+    public void testAddNewTest() {
+        List<String> fileList = List.of("A=src/test/java/ExampleTest.java");
+        String dependencies = "";
+        List<IMethodInstance> methodList = List.of(
+                new FilterMock.MethodInstanceImpl(ExampleTest.class)
         );
-        Set<String> affectedFiles = collect(changedFiles, graph);
 
+        List<IMethodInstance> resultList = FilterForTestsUtils.filter(fileList, dependencies, methodList);
 
-        Assert.assertEquals(affectedFiles, Set.of(TEST_A));
+        Assert.assertEquals(resultList.size(), 1);
+        Assert.assertEquals(resultList.get(0).getMethod().getTestClass().getRealClass(), ExampleTest.class);
     }
 
     @Test
-    public void testSinglePageDependency() {
-        Set<String> changedFiles = Set.of(PAGE_A);
-        Map<String, Set<String>> graph = Map.of(
-                PAGE_A, Set.of(TEST_A)
+    public void tesRenameTest() {
+        List<String> fileList = List.of("R=src/test/java/ExampleTest.java");
+        String dependencies = "";
+        List<IMethodInstance> methodList = List.of(
+                new FilterMock.MethodInstanceImpl(ExampleTest.class)
         );
-        Set<String> affectedFiles = collect(changedFiles, graph);
 
-        Assert.assertEquals(affectedFiles, Set.of(TEST_A));
+        List<IMethodInstance> resultList =
+                FilterForTestsUtils.filter(fileList, dependencies, methodList);
+
+        Assert.assertEquals(resultList.size(), 1);
+        Assert.assertEquals(resultList.get(0).getMethod().getTestClass().getRealClass(), ExampleTest.class);
     }
 
     @Test
-    public void testChangedTestDirectly() {
-        Set<String> changedFiles = Set.of(TEST_B);
-        Map<String, Set<String>> graph = Map.of();
-        Set<String> affectedFiles = collect(changedFiles, graph);
+    public void testModifiedTest() {
+        List<String> fileList = List.of("M=src/test/java/ExampleTest.java");
+        String dependencies = "";
+        List<IMethodInstance> methodList = List.of(
+                new FilterMock.MethodInstanceImpl(ExampleTest.class)
+        );
 
-        Assert.assertEquals(affectedFiles, Set.of(TEST_B));
+        List<IMethodInstance> resultList =
+                FilterForTestsUtils.filter(fileList, dependencies, methodList);
+
+        Assert.assertEquals(resultList.size(), 1);
+        Assert.assertEquals(resultList.get(0).getMethod().getTestClass().getRealClass(), ExampleTest.class);
     }
 
     @Test
-    public void testChangedNonTestNonPageFile() {
-        Set<String> changedFiles = Set.of(DATA_FILE);
-        Map<String, Set<String>> graph = Map.of();
-        Set<String> affectedFiles = collect(changedFiles, graph);
+    public void testClassWithDependencies() {
+        List<String> fileList = List.of("M=src/main/java/BasePage.java");
+        String dependencies = "src/main/java/BasePage.java=src/main/java/Page.java;" +
+                "src/main/java/Page.java=src/test/java/LoginTest.java;" +
+                "src/main/java/Page.java=src/test/java/DashboardTest.java";
 
-        Assert.assertEquals(affectedFiles, Set.of(DATA_FILE));
+        List<IMethodInstance> methodList = List.of(
+                new FilterMock.MethodInstanceImpl(LoginTest.class),
+                new FilterMock.MethodInstanceImpl(DashboardTest.class)
+        );
+
+        List<IMethodInstance> resultList =
+                FilterForTestsUtils.filter(fileList, dependencies, methodList);
+
+        Assert.assertEquals(resultList.size(), 2);
+        Assert.assertTrue(resultList.stream().anyMatch(x -> x.getMethod().getTestClass().getRealClass() == LoginTest.class));
+        Assert.assertTrue(resultList.stream().anyMatch(x -> x.getMethod().getTestClass().getRealClass() == DashboardTest.class));
+    }
+
+    @Test
+    public void testClassTopLevelNoDependencies() {
+        List<String> fileList = List.of("M=src/main/java/Utils.java");
+        String dependencies = "";
+        List<IMethodInstance> methodList = List.of(
+                new FilterMock.MethodInstanceImpl(ExampleTest.class),
+                new FilterMock.MethodInstanceImpl(LoginTest.class)
+        );
+
+        List<IMethodInstance> resultList =
+                FilterForTestsUtils.filter(fileList, dependencies, methodList);
+
+        Assert.assertEquals(resultList.size(), 2);
+    }
+
+    @Test
+    public void testOneDependency() {
+        List<String> fileList = List.of("M=src/main/java/Service.java");
+        String dependencies =
+                "src/main/java/BasePage.java=src/main/java/LoginTest.java;";
+
+        List<IMethodInstance> methodList = List.of(new FilterMock.MethodInstanceImpl(LoginTest.class));
+
+        List<IMethodInstance> resultList =
+                FilterForTestsUtils.filter(fileList, dependencies, methodList);
+
+        Assert.assertEquals(resultList.size(), 1);
+        Assert.assertTrue(resultList.stream().anyMatch(x -> x.getMethod().getTestClass().getRealClass() == LoginTest.class));
     }
 
 }

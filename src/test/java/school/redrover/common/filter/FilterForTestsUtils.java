@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static school.redrover.common.ProjectUtils.log;
+
 public class FilterForTestsUtils {
 
     public static List<IMethodInstance> filter(List<String> fileList, String dependenciesClasses, List<IMethodInstance> methods) {
@@ -15,8 +17,7 @@ public class FilterForTestsUtils {
                 .filter(e -> !e.startsWith("D="))
                 .map(e -> e.substring(e.lastIndexOf('=') + 1))
                 .collect(Collectors.toSet());
-
-        System.out.println("Changed files" + changedFiles);
+        //System.out.println("Changed files: " + changedFiles);
 
         Map<Class<?>, String> classMap = methods.stream()
                 .map(IMethodInstance::getMethod).map(ITestNGMethod::getTestClass).map(IClass::getRealClass)
@@ -25,40 +26,55 @@ public class FilterForTestsUtils {
                         clazz -> String.format(pathTemplate, clazz.getName().replace('.', '/')),
                         (pathA, pathB) -> pathA
                 ));
-        System.out.println("Class map" + classMap);
+        //System.out.println("Class map: " + classMap);
 
-        Map<String, Set<String>> dependencyGraph = Arrays.stream(dependenciesClasses.split(";"))
+        Map<String, Set<String>> dependenciesFilesMap = Arrays.stream(dependenciesClasses.split(";"))
                 .filter(s -> s.contains("="))
                 .map(s -> s.split("="))
                 .collect(Collectors.groupingBy(
-                        p -> String.format(pathTemplate, p[0].replace('.', '/')),
-                        Collectors.mapping(
-                                p -> String.format(pathTemplate, p[1].replace('.', '/')),
-                                Collectors.toSet()
-                        )
+                        parts -> String.format(pathTemplate, parts[0].replace('.', '/')),
+                        Collectors.mapping(parts -> String.format(pathTemplate, parts[1].replace('.', '/')), Collectors.toSet())
                 ));
-        System.out.println("Dependency graph" + dependencyGraph);
+        //System.out.println("Dependencies graph:" + dependenciesFilesMap);
+
+        Map<String, Set<String>> filteredGraph = new HashMap<>();
+        for (String file : changedFiles) {
+            Set<String> children = dependenciesFilesMap.getOrDefault(file, Collections.emptySet())
+                    .stream()
+                    .filter(ch -> changedFiles.contains(ch))
+                    .collect(Collectors.toSet());
+            filteredGraph.put(file, children);
+        }
 
         Set<String> affectedFiles = new HashSet<>();
         Set<String> visitedFiles = new HashSet<>();
 
         for (String file : changedFiles) {
-            collectLeaves(file, dependencyGraph, affectedFiles, visitedFiles);
+            collectLeaves(file, filteredGraph, affectedFiles, visitedFiles);
         }
 
-        System.out.println("Affected files" + affectedFiles);
+        log("Affected files: " + affectedFiles);
+
         if (classMap.values().containsAll(affectedFiles)) {
             return methods.stream().filter(method -> affectedFiles.contains(classMap.get(method.getMethod().getTestClass().getRealClass()))).collect(Collectors.toList());
         }
+
         return methods;
     }
 
+    private static void collectLeaves(String currentFile,
+                                      Map<String, Set<String>> dependencyGraph,
+                                      Set<String> affectedFiles,
+                                      Set<String> visitedFiles) {
 
-    private static void collectLeaves(String currentFile, Map<String, Set<String>> dependencyGraph, Set<String> affectedFiles, Set<String> visitedFiles) {
-        if (!visitedFiles.add(currentFile)) return;
+        if (!visitedFiles.add(currentFile)) return; // защита от циклов
 
-        Set<String> children = dependencyGraph.get(currentFile);
-        if (children == null || children.isEmpty()) {
+        Set<String> children = dependencyGraph.getOrDefault(currentFile, Collections.emptySet())
+                .stream()
+                .filter(child -> !child.equals(currentFile)) // убираем самоссылки
+                .collect(Collectors.toSet());
+
+        if (children.isEmpty()) {
             affectedFiles.add(currentFile);
             return;
         }
