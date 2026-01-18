@@ -41,7 +41,7 @@ public class FilterForTestsUtils {
         for (String file : changedFiles) {
             Set<String> children = dependenciesFilesMap.getOrDefault(file, Collections.emptySet())
                     .stream()
-                    .filter(ch -> changedFiles.contains(ch))
+                    .filter(child -> !child.equals(file)) // только убираем самоссылки
                     .collect(Collectors.toSet());
             filteredGraph.put(file, children);
         }
