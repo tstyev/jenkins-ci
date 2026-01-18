@@ -42,6 +42,7 @@ public class FilterForTestsUtils {
             Set<String> children = dependenciesFilesMap.getOrDefault(file, Collections.emptySet())
                     .stream()
                     .filter(child -> !child.equals(file)) // только убираем самоссылки
+                    .filter(child -> !child.contains("$")) // убираем inner-классы
                     .collect(Collectors.toSet());
             filteredGraph.put(file, children);
         }
