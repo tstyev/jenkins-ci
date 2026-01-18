@@ -18,6 +18,7 @@ public class FilterForTestsTest {
     public void testDeletedClass() {
         List<String> fileList = List.of("D=src/test/java/FileTest.java");
         String dependenciesClasses = "";
+
         List<IMethodInstance> methodList = List.of(new FilterMock.MethodInstanceImpl(FilterForTestsTest.class));
 
         List<IMethodInstance> resultList = FilterForTestsUtils.filter(fileList, dependenciesClasses, methodList);
