@@ -10,6 +10,6 @@ public class ExamplePage extends BasePage {
     }
 
     public static void example() {
-        int a = 2;
+        int a = 1;
     }
 }
